@@ -12,6 +12,7 @@
 var brackets = require('./brackets')
 var parsers = require('./parsers')
 var path = require('path')            // used by getCode()
+//var sourcemapper = require('./sourcemaps')
 //#endif
 
 //#set $_RIX_TEST = 4
@@ -288,7 +289,8 @@ function restoreExpr (html, pcex) {
  * @see {@link http://www.w3.org/TR/html5/syntax.html}
  */
 function _compileHTML (html, opts, pcex) {
-
+  /* eslint no-console: 0, max-len: 0 */
+  var ret
   // separate the expressions, then parse the tags and their attributes
   html = splitHtml(html, opts, pcex)
     .replace(HTML_TAGS, function (_, name, attr, ends) {
@@ -301,7 +303,7 @@ function _compileHTML (html, opts, pcex) {
 
       return '<' + name + ends + '>'
     })
-
+  // before set here for source maps
   // tags parsed, now compact whitespace if `opts.whitespace` is not set
   if (!opts.whitespace) {
     var p = []
@@ -324,7 +326,9 @@ function _compileHTML (html, opts, pcex) {
   if (opts.compact) html = html.replace(/>[ \t]+<([-\w\/])/g, '><$1')
 
   // 2016-01-16: new logic in compile makes necessary another TRIM_TRAIL
-  return restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
+  ret =  restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
+  // after set here for sourcemaps
+  return ret
 }
 
 /**
