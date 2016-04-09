@@ -1,15 +1,10 @@
 var SourceMapGenerator = require('source-map').SourceMapGenerator
 
-
-var map = new SourceMapGenerator({
-  file: "test.js"
-})
-
 module.exports = {
   
   mapper:function(from,to){
     // explode the source into lines
-    var maps = []
+    var maplines = []
     var lines = from.split(/[\r\n]/)
     var offset = 0
     lines.forEach(function(line,idx){
@@ -18,11 +13,23 @@ module.exports = {
       if(indent < 0) indent = 0
       var column = to.indexOf(find)
       if(column < 0) column = 0
-      maps.push({ original:{ line: idx, column:indent}, generated: {line:0, column:column + offset }})
+      maplines.push({ original:{ line: idx+1, column:indent}, generated: {line:1, column:column + offset }})
       to = to.substring(column)
       offset += column
     })
-    return maps
+    this.maplines = maplines
+  },
+  
+  createMap:function(src,file){
+    var map = new SourceMapGenerator({
+      file: file
+    })
+    //map.setSourceContent("module-one.scm",fs.readFileSync("path/to/module-one.scm"))
+    this.maplines.forEach(function(mapline){
+      mapline.source = src
+      map.addMapping(mapline)
+    })
+    return '//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + new Buffer(map.toString()).toString('base64')
   }
 }
 // map.addMapping({

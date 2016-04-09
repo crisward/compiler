@@ -12,7 +12,8 @@
 var brackets = require('./brackets')
 var parsers = require('./parsers')
 var path = require('path')            // used by getCode()
-//var sourcemapper = require('./sourcemaps')
+var sourcemapper = require('../src/sourcemaps.js')
+
 //#endif
 
 //#set $_RIX_TEST = 4
@@ -304,6 +305,8 @@ function _compileHTML (html, opts, pcex) {
       return '<' + name + ends + '>'
     })
   // before set here for source maps
+  var htmlBefore = html
+ 
   // tags parsed, now compact whitespace if `opts.whitespace` is not set
   if (!opts.whitespace) {
     var p = []
@@ -328,6 +331,7 @@ function _compileHTML (html, opts, pcex) {
   // 2016-01-16: new logic in compile makes necessary another TRIM_TRAIL
   ret =  restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
   // after set here for sourcemaps
+  sourcemapper.mapper(htmlBefore, html)
   return ret
 }
 
@@ -726,7 +730,8 @@ function mktag (name, html, css, attribs, js, pcex) {
   return 'riot.tag2(\'' + name + SQ +
     c + _q(html, 1) +
     c + _q(css) +
-    c + _q(attribs) + ', function(opts) {\n' + js + s
+    c + _q(attribs) + ', function(opts) {\n' + js + s 
+    
 }
 
 /**
@@ -1058,13 +1063,17 @@ function compile (src, opts, url) {
     src = '//src: ' + url.replace(/\\/g, '/') + '\n' + src
   }
   //#endif
+
+  //create sourcemap
+  if (opts.sourcemap) src += sourcemapper.createMap('test.tag', 'test.js')
+  
   return src
 }
 
 //#if NODE
 module.exports = {
   compile: compile,
-  html: compileHTML,
+  html: compileHTML, 
   style: _compileCSS,
   css: compileCSS,
   js: compileJS,
