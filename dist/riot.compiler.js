@@ -92,7 +92,7 @@ riot.parsers = parsers
 
 /**
  * Compiler for riot custom tags
- * @version v2.3.22
+ * @version WIP
  */
 var compile = (function () {
 
@@ -237,6 +237,8 @@ var compile = (function () {
   }
 
   function _compileHTML (html, opts, pcex) {
+    /* eslint no-console: 0, max-len: 0 */
+    var ret
 
     html = splitHtml(html, opts, pcex)
       .replace(HTML_TAGS, function (_, name, attr, ends) {
@@ -249,6 +251,8 @@ var compile = (function () {
 
         return '<' + name + ends + '>'
       })
+
+    var htmlBefore = html
 
     if (!opts.whitespace) {
       var p = []
@@ -267,7 +271,10 @@ var compile = (function () {
 
     if (opts.compact) html = html.replace(/>[ \t]+<([-\w\/])/g, '><$1')
 
-    return restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
+    ret =  restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
+
+    sourcemapper.mapper(htmlBefore, html)
+    return ret
   }
 
   function compileHTML (html, opts, pcex) {
@@ -454,6 +461,7 @@ var compile = (function () {
       c + _q(html, 1) +
       c + _q(css) +
       c + _q(attribs) + ', function(opts) {\n' + js + s
+
   }
 
   function splitBlocks (str) {
@@ -633,6 +641,8 @@ var compile = (function () {
 
     if (opts.entities) return parts
 
+    src += sourcemapper.createMap('test.tag', 'test.js')
+
     return src
   }
 
@@ -641,7 +651,7 @@ var compile = (function () {
     html: compileHTML,
     css: compileCSS,
     js: compileJS,
-    version: 'v2.3.22'
+    version: 'WIP'
   }
   return compile
 

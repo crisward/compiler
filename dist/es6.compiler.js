@@ -1,6 +1,6 @@
 /**
  * Compiler for riot custom tags
- * @version v2.3.22
+ * @version WIP
  */
 
 import { brackets } from 'riot-tmpl'
@@ -239,6 +239,8 @@ function restoreExpr (html, pcex) {
 }
 
 function _compileHTML (html, opts, pcex) {
+  /* eslint no-console: 0, max-len: 0 */
+  var ret
 
   html = splitHtml(html, opts, pcex)
     .replace(HTML_TAGS, function (_, name, attr, ends) {
@@ -251,6 +253,8 @@ function _compileHTML (html, opts, pcex) {
 
       return '<' + name + ends + '>'
     })
+
+  var htmlBefore = html
 
   if (!opts.whitespace) {
     var p = []
@@ -269,7 +273,10 @@ function _compileHTML (html, opts, pcex) {
 
   if (opts.compact) html = html.replace(/>[ \t]+<([-\w\/])/g, '><$1')
 
-  return restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
+  ret =  restoreExpr(html, pcex).replace(TRIM_TRAIL, '')
+
+  sourcemapper.mapper(htmlBefore, html)
+  return ret
 }
 
 function compileHTML (html, opts, pcex) {
@@ -456,6 +463,7 @@ function mktag (name, html, css, attribs, js, pcex) {
     c + _q(html, 1) +
     c + _q(css) +
     c + _q(attribs) + ', function(opts) {\n' + js + s
+
 }
 
 function splitBlocks (str) {
@@ -635,10 +643,12 @@ function compile (src, opts, url) {
 
   if (opts.entities) return parts
 
+  src += sourcemapper.createMap('test.tag', 'test.js')
+
   return src
 }
 
-var version = 'v2.3.22'
+var version = 'WIP'
 
 export default {
   compile,
